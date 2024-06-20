@@ -12,6 +12,13 @@ import IndiaIcon from "@/images/India.svg";
 import BriefcaseIcon from "@/images/Briefcase.svg";
 import CaretDownIcon from "@/images/CaretDown.svg";
 import FileTextIcon from "@/images/FileText.svg";
+import LinkIcon from "@/images/LinkSimple.svg";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  clearErrors,
+  setError,
+  updateField,
+} from "@/libs/store/features/formSlice";
 
 // Sample data for states and cities
 const stateCityData = {
@@ -46,23 +53,93 @@ const stateCityData = {
 };
 
 const Form = () => {
+  const dispatch = useDispatch();
+  const formState = useSelector((state) => state.form);
   const [isPersonalDetailsEditable, setIsPersonalDetailsEditable] =
     useState(false);
   const [isInstitutionDetailsEditable, setIsInstitutionDetailsEditable] =
     useState(false);
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+
+  const handleInputChange = (section, field, value) => {
+    dispatch(updateField({ section, field, value }));
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    Object.keys(formState.personalDetails).forEach((field) => {
+      if (!formState.personalDetails[field]) {
+        errors[field] = "This is required";
+      }
+    });
+    Object.keys(formState.institutionDetails).forEach((field) => {
+      if (!formState.institutionDetails[field]) {
+        errors[field] = "This is required";
+      }
+    });
+    return errors;
+  };
+
+  const handleSave = (section) => {
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      Object.keys(errors).forEach((field) => {
+        dispatch(setError({ field, error: errors[field] }));
+      });
+    } else {
+      dispatch(clearErrors());
+      if (section === "personal") {
+        setIsPersonalDetailsEditable(false);
+      } else if (section === "institution") {
+        setIsInstitutionDetailsEditable(false);
+      }
+    }
+  };
 
   const handleStateChange = (e) => {
     const state = e.target.value;
-    setSelectedState(state);
-    setSelectedCity(""); // Reset city when state changes
+    handleStateChange("institutionDetails", "state", state);
+    handleInputChange("institutionDetails", "city", "");
   };
 
   const handleCityChange = (e) => {
     const city = e.target.value;
-    setSelectedCity(city);
+    handleInputChange("institutionDetails", "city", city);
   };
+
+  const renderInput = (section, field, placeholder, type = "text") => {
+    const isEditable =
+      section === "personalDetails"
+        ? isPersonalDetailsEditable
+        : isInstitutionDetailsEditable;
+    const value = formState[section][field];
+    const error = formState.errors[field];
+    return (
+      <div className="relative w-full mt-1.5">
+        <input
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => handleInputChange(section, field, e.target.value)}
+          className={`capitalize px-[22px] py-[12px] text-[13px] w-full border p-2 rounded-[15px] ${
+            error ? "border-red-500" : "border-[#0A65CC]"
+          }`}
+          disabled={!isEditable}
+        />
+        {error && (
+          <Image
+            src={ExclamationIcon}
+            width={16}
+            height={16}
+            className="absolute right-3 top-3"
+            alt="exclamation icon"
+          />
+        )}
+      </div>
+    );
+  };
+
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
 
   return (
     <form>
@@ -112,19 +189,15 @@ const Form = () => {
                 )}
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-11/12">
               <Label title={"first name"}>
-                <input
-                  type="text"
-                  className="capitalize px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                  disabled={!isPersonalDetailsEditable}
-                />
+                {renderInput("personalDetails", "firstName", "First Name")}
               </Label>
 
               <Label title={"last name"}>
                 <input
                   type="text"
-                  className="capitalize px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                  className="capitalize mt-1.5 px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
                   disabled={!isPersonalDetailsEditable}
                 />
               </Label>
@@ -134,7 +207,7 @@ const Form = () => {
                   <input
                     type="text"
                     placeholder="Designation"
-                    className="capitalize pl-[40px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    className="capitalize pl-[40px] py-[12px] mt-1.5 text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
                     disabled={!isPersonalDetailsEditable}
                   />
                   <Image
@@ -151,7 +224,7 @@ const Form = () => {
                 <input
                   type="text"
                   placeholder="gender"
-                  className="capitalize px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                  className="capitalize mt-1.5 px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
                   disabled={!isPersonalDetailsEditable}
                 />
               </Label>
@@ -162,7 +235,7 @@ const Form = () => {
                     type="text"
                     placeholder="gmail"
                     value="ABC@gmail.com"
-                    className="capitalize pl-[40px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    className="capitalize mt-1.5 pl-[40px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
                     disabled={!isPersonalDetailsEditable}
                   />
                   <Image
@@ -181,7 +254,7 @@ const Form = () => {
                     type="text"
                     placeholder="moblie no."
                     value="8056*******"
-                    className="capitalize pl-[112px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    className="capitalize mt-1.5 pl-[112px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
                     disabled={!isPersonalDetailsEditable}
                   />
                   <div className="absolute left-2.5 top-3">
@@ -220,6 +293,10 @@ const Form = () => {
                 className="flex items-center gap-3 bg-[#0A65CC] px-[17px] py-[13px] text-[16px] text-white font-bold rounded-[10px]"
                 onClick={(e) => {
                   e.preventDefault();
+                  console.log("form data", formState);
+
+                  
+
                   setIsInstitutionDetailsEditable(
                     !isInstitutionDetailsEditable
                   );
@@ -244,145 +321,161 @@ const Form = () => {
               </button>
             </div>
 
-            <Label title={"About the institution"}>
-              <textarea
-                placeholder="About the institution"
-                className="px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px] w-full"
-                disabled={!isInstitutionDetailsEditable}
-              ></textarea>
-            </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Label title={"Institution name"}>
-                <input
-                  type="text"
-                  placeholder="Institution Name"
-                  className="px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+            <div className="w-11/12">
+              <Label title={"About the institution"}>
+                <textarea
+                  placeholder="About the institution"
+                  className="px-[22px] py-[12px] mt-1.5 h-[178px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px] w-full"
                   disabled={!isInstitutionDetailsEditable}
-                />
+                ></textarea>
               </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Label title={"Institution name"}>
+                  <input
+                    type="text"
+                    placeholder="Institution Name"
+                    className="px-[22px] py-[12px] mt-1.5 text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    disabled={!isInstitutionDetailsEditable}
+                  />
+                </Label>
 
-              <Label title={"Institution Type"}>
-                <input
-                  type="text"
-                  placeholder="Institution Type"
-                  className="px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                  disabled={!isInstitutionDetailsEditable}
-                />
-              </Label>
-            </div>
-            <Label title={"website"}>
-              <input
-                type="url"
-                placeholder="Website"
-                className="px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                disabled={!isInstitutionDetailsEditable}
-              />
-            </Label>
-
-            <Label title={"Address"}>
-              <input
-                type="text"
-                placeholder="Address line 1"
-                className="px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                disabled={!isInstitutionDetailsEditable}
-              />
-              <input
-                type="text"
-                placeholder="Address line 2"
-                className="px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                disabled={!isInstitutionDetailsEditable}
-              />
-            </Label>
-            <div className="flex items-center gap-6 mb-5">
-              <div className="grid w-full">
-                <Image
-                  src={CaretDownIcon}
-                  width={20}
-                  height={20}
-                  alt="down icon"
-                  className="pointer-events-none z-10 right-3 relative col-start-1 row-start-1 h-4 w-4 self-center justify-self-end forced-colors:hidden"
-                />
-                <select
-                  value={selectedState}
-                  onChange={handleStateChange}
-                  className="appearance-none row-start-1 col-start-1 px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                  disabled={!isInstitutionDetailsEditable}
-                >
-                  <option value="" disabled>
-                    Select State
-                  </option>
-                  {Object.keys(stateCityData).map((state) => (
-                    <option key={state} value={state}>
-                      {state}
-                    </option>
-                  ))}
-                </select>
+                <Label title={"Institution Type"}>
+                  <input
+                    type="text"
+                    placeholder="Institution Type"
+                    className="px-[22px] py-[12px] mt-1.5 text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    disabled={!isInstitutionDetailsEditable}
+                  />
+                </Label>
               </div>
+              <Label title={"website"}>
+                <div className="relative w-full">
+                  <input
+                    type="url"
+                    placeholder="Website"
+                    className="pl-[40px] py-[12px] mt-1.5 text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    disabled={!isInstitutionDetailsEditable}
+                  />
+                  <Image
+                    src={LinkIcon}
+                    width={24}
+                    height={24}
+                    className="absolute left-2.5 top-2.5"
+                    alt="envelope icon"
+                  />
+                </div>
+              </Label>
 
-              <div className="grid w-full">
-              <Image
-                  src={CaretDownIcon}
-                  width={20}
-                  height={20}
-                  alt="down icon"
-                  className="pointer-events-none z-10 right-3 relative col-start-1 row-start-1 h-4 w-4 self-center justify-self-end forced-colors:hidden"
-                />
-                <select
-                  value={selectedCity}
-                  onChange={handleCityChange}
-                  className="appearance-none row-start-1 col-start-1 px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                  disabled={!isInstitutionDetailsEditable || !selectedState}
-                >
-                  <option value="" disabled>
-                    Select City
-                  </option>
-                  {selectedState &&
-                    stateCityData[selectedState].map((city) => (
-                      <option key={city} value={city}>
-                        {city}
+              <Label title={"Address"}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="Address line 1"
+                    className="px-[22px] py-[12px] mt-1.5 text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    disabled={!isInstitutionDetailsEditable}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Address line 2"
+                    className="px-[22px] py-[12px] mt-1.5 text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    disabled={!isInstitutionDetailsEditable}
+                  />
+                </div>
+              </Label>
+              <div className="flex items-center gap-6 mb-5 mt-3.5">
+                <div className="grid w-full">
+                  <Image
+                    src={CaretDownIcon}
+                    width={20}
+                    height={20}
+                    alt="down icon"
+                    className="pointer-events-none z-10 right-3 relative col-start-1 row-start-1 h-4 w-4 self-center justify-self-end forced-colors:hidden"
+                  />
+                  <select
+                    value={selectedState}
+                    onChange={handleStateChange}
+                    className="appearance-none row-start-1 col-start-1 px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    disabled={!isInstitutionDetailsEditable}
+                  >
+                    <option value="" disabled>
+                      Select State
+                    </option>
+                    {Object.keys(stateCityData).map((state) => (
+                      <option key={state} value={state}>
+                        {state}
                       </option>
                     ))}
-                </select>
-              </div>
+                  </select>
+                </div>
 
-              <input
-                type="text"
-                placeholder="Pincode"
-                className="px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                disabled={!isInstitutionDetailsEditable}
-              />
-            </div>
+                <div className="grid w-full">
+                  <Image
+                    src={CaretDownIcon}
+                    width={20}
+                    height={20}
+                    alt="down icon"
+                    className="pointer-events-none z-10 right-3 relative col-start-1 row-start-1 h-4 w-4 self-center justify-self-end forced-colors:hidden"
+                  />
+                  <select
+                    value={selectedCity}
+                    onChange={handleCityChange}
+                    className="appearance-none row-start-1 col-start-1 px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    disabled={!isInstitutionDetailsEditable || !selectedState}
+                  >
+                    <option value="" disabled>
+                      Select City
+                    </option>
+                    {selectedState &&
+                      stateCityData[selectedState].map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                  </select>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Label title={"No.of employees"}>
                 <input
                   type="text"
-                  placeholder="No. of Employees"
+                  placeholder="Pincode"
                   className="px-[22px] py-[12px] text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
-                  value="10-15 employees"
-                  disabled
+                  disabled={!isInstitutionDetailsEditable}
                 />
-              </Label>
-              <div className="flex items-center gap-4 bg-[#F1F2F480] bg-opacity-50 rounded-[6px] p-[20px]">
-                <Image
-                  src={FileTextIcon}
-                  width={32}
-                  height={32}
-                  alt="file icon"
-                />
-                <div className="flex flex-col">
-                  <span className="mr-2 text-[14px] text-[#18191C] font-medium">
-                    Institution Document
-                  </span>
-                  <span className="mr-2 text-[14px] text-[#5E6670] font-normal">
-                    3.5MB
-                  </span>
-                </div>
-                <button onClick={(e) => e.preventDefault()} className="ml-auto">
-                  ...
-                </button>
-                {/* <button className="text-blue-500">Edit Docs</button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Label title={"No.of employees"}>
+                  <input
+                    type="text"
+                    placeholder="No. of Employees"
+                    className="px-[22px] py-[12px] mt-1.5 text-[13px] w-full border border-[#0A65CC] p-2 rounded-[15px]"
+                    value="10-15 employees"
+                    disabled
+                  />
+                </Label>
+                <div className="flex items-center gap-4 bg-[#F1F2F480] bg-opacity-50 rounded-[6px] p-[20px]">
+                  <Image
+                    src={FileTextIcon}
+                    width={32}
+                    height={32}
+                    alt="file icon"
+                  />
+                  <div className="flex flex-col">
+                    <span className="mr-2 text-[14px] text-[#18191C] font-medium">
+                      Institution Document
+                    </span>
+                    <span className="mr-2 text-[14px] text-[#5E6670] font-normal">
+                      3.5MB
+                    </span>
+                  </div>
+                  <button
+                    onClick={(e) => e.preventDefault()}
+                    className="ml-auto"
+                  >
+                    ...
+                  </button>
+                  {/* <button className="text-blue-500">Edit Docs</button>
                 <button className="text-red-500 ml-4">Delete</button> */}
+                </div>
               </div>
             </div>
           </div>
