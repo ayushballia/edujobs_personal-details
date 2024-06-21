@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import UploadCloud from "@/images/Upload-cloud.svg";
-import { useState } from "react";
 
 const Modal = ({ show, onClose, onUpload, imageName, temporaryImage }) => {
   const triggerFileInput = () => {

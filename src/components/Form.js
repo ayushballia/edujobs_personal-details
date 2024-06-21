@@ -20,6 +20,7 @@ import UploadCloud from "@/images/Upload-cloud.svg";
 import X from "@/images/X.svg";
 import Label from "./Label";
 import InputField from "./InputField";
+import Modal from "./Modal";
 
 const stateCityData = {
   "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur"],
@@ -38,6 +39,8 @@ const Form = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [showFileInput, setShowFileInput] = useState(false);
   const [uploadedImage, setUploadedImage] = useState(BCCLIcon);
+  const [uploadedImageName, setUploadedImageName] = useState("");
+  const [temporaryImage, setTemporaryImage] = useState(null);
 
   const handleInputChange = (section, field, value) => {
     dispatch(updateField({ section, field, value }));
@@ -86,12 +89,15 @@ const Form = () => {
     handleInputChange("institutionDetails", "city", city);
   };
 
+
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setUploadedImage(reader.result);
+        setTemporaryImage(reader.result);
+        setUploadedImageName(file.name);
       };
       reader.readAsDataURL(file);
     }
@@ -102,21 +108,16 @@ const Form = () => {
     e.preventDefault();
     setShowFileInput(true);
   };
-
-  const triggerFileInput = () => {
-    document.getElementById("fileInput").click();
-  };
-
   return (
     <form onSubmit={(e) => e.preventDefault()}>
       <div className="flex justify-center gap-6 relative">
         <div className="relative flex items-center justify-center h-max w-1/4">
           <Image
-            src={BCCLIcon}
+            src={temporaryImage || BCCLIcon}
             width={240}
             height={240}
             alt="bccl icon"
-            className="w-full"
+            className="max-w-[240px] max-h-[240px] rounded-full"
           />
           <button
             className="absolute bottom-0 right-0 bg-[#0A65CC] border rounded-[10px] px-[9px] py-[6px]"
@@ -126,58 +127,13 @@ const Form = () => {
           </button>
         </div>
 
-        {showFileInput && (
-          <div className="absolute w-full h-full bg-gray-700 bg-opacity-75 flex z-10 justify-center translate-x-50">
-            <div className="relative bg-white p-4 rounded-[12px] shadow-md w-[536px] h-[316px] m-auto">
-              <label className="block text-[14px] font-normal text-[#18191C]">
-                Upload Logo
-              </label>
-              <button
-                  className="absolute top-0 right-0 -m-5 text-[16px] font-semibold px-[12px] py-[8px] bg-[#E7F0FA] text-[#0A65CC] rounded-[50%]"
-                  onClick={() => setShowFileInput(false)}
-                >
-                  X
-                </button>
-              <div className="border-2 border-dashed rounded-[12px]" onClick={triggerFileInput}>
-                <div className="flex flex-col items-center justify-center bg-[#F1F2F466] bg-opacity-40">
-                  <Image
-                    src={UploadCloud}
-                    width={48}
-                    height={48}
-                    alt="upload cloud"
-                  />
-                  <p className="text-[14px font-medium">
-                    Browse Logo or drop here
-                  </p>
-                  <p className="text-[12px] text-[#5E6670] font-normal ">
-                    Only JPG, PNG format available . Max file size 12 MB.
-                  </p>
-                  <input
-                  type="file"
-                  accept="image/*"
-                  className="mt-2 h-full hidden"
-                  onChange={handleImageUpload}
-                />
-                </div>
-                
-              </div>
-              <div className="flex items-center justify-between">
-                <button
-                  className="text-[16px] font-semibold mt-4 px-[24px] py-[12px] bg-[#E7F0FA] text-[#0A65CC] rounded-[3px]"
-                  onClick={() => setShowFileInput(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="text-[16px] font-semibold mt-4 px-[24px] py-[12px] bg-[#0A65CC] text-white rounded-[3px]"
-                  onClick={() => setShowFileInput(false)}
-                >
-                  Add Logo
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <Modal
+          show={showFileInput}
+          onClose={() => setShowFileInput(false)}
+          onUpload={handleImageUpload}
+          imageName={uploadedImageName}
+          temporaryImage={temporaryImage}
+        />
 
         <div className="w-3/4 p-4">
           {/* Personal Details Section */}
