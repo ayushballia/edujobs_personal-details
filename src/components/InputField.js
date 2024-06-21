@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 
 const InputField = ({
   type = "text",
@@ -26,18 +28,16 @@ const InputField = ({
         value={value}
         onChange={onChange}
         className={`capitalize px-[22px] py-[12px] text-[13px] w-full border p-2 rounded-[15px] ${
-          error ? "border-red-500" : "border-[#0A65CC]"
+          error ? "border-red-500" : "border-[#E4E5E8]"
         } ${icon ? "pl-[40px]" : ""}`}
         disabled={disabled}
       />
       {error && (
-        <Image
-          src={"/path/to/exclamation-icon.svg"}
-          width={16}
-          height={16}
-          className="absolute right-3 top-3"
-          alt="exclamation icon"
-        />
+        <FontAwesomeIcon
+        color="red"
+        icon={faExclamationCircle}
+        className="absolute right-4 top-1/2 transform -translate-y-1/2"
+      />
       )}
     </div>
   );

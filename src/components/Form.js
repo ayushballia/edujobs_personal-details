@@ -1,6 +1,12 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  clearErrors,
+  setError,
+  updateField,
+} from "@/libs/store/features/formSlice";
 import BCCLIcon from "@/images/BG.svg";
 import EditIcon from "@/images/edit.svg";
 import UserIcon from "@/images/User.svg";
@@ -9,19 +15,10 @@ import UserCircleIcon from "@/images/UserCircle.svg";
 import EnvelopeIcon from "@/images/Envelope.svg";
 import IndiaIcon from "@/images/India.svg";
 import BriefcaseIcon from "@/images/Briefcase.svg";
-import CaretDownIcon from "@/images/CaretDown.svg";
-import FileTextIcon from "@/images/FileText.svg";
 import LinkIcon from "@/images/LinkSimple.svg";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  clearErrors,
-  setError,
-  updateField,
-} from "@/libs/store/features/formSlice";
 import Label from "./Label";
 import InputField from "./InputField";
 
-// Sample data for states and cities
 const stateCityData = {
   "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur"],
   // Add other states and cities...
@@ -42,15 +39,11 @@ const Form = () => {
     dispatch(updateField({ section, field, value }));
   };
 
-  const validateForm = () => {
+  const validateForm = (section) => {
     const errors = {};
-    Object.keys(formState.personalDetails).forEach((field) => {
-      if (!formState.personalDetails[field]) {
-        errors[field] = "This is required";
-      }
-    });
-    Object.keys(formState.institutionDetails).forEach((field) => {
-      if (!formState.institutionDetails[field]) {
+    const fields = formState[section];
+    Object.keys(fields).forEach((field) => {
+      if (!fields[field]) {
         errors[field] = "This is required";
       }
     });
@@ -58,18 +51,21 @@ const Form = () => {
   };
 
   const handleSave = (section) => {
-    const errors = validateForm();
+    console.log(`Saving ${section}`);
+    const errors = validateForm(section);
     if (Object.keys(errors).length > 0) {
       Object.keys(errors).forEach((field) => {
         dispatch(setError({ field, error: errors[field] }));
       });
+      console.log("Errors:", errors);
     } else {
       dispatch(clearErrors());
-      if (section === "personal") {
+      if (section === "personalDetails") {
         setIsPersonalDetailsEditable(false);
-      } else if (section === "institution") {
+      } else if (section === "institutionDetails") {
         setIsInstitutionDetailsEditable(false);
       }
+      console.log("Save successful");
     }
   };
 
@@ -87,7 +83,7 @@ const Form = () => {
   };
 
   return (
-    <form>
+    <form onSubmit={(e) => e.preventDefault()}>
       <div className="flex gap-6">
         <div className="relative flex items-center justify-center h-max w-1/4">
           <Image
@@ -103,6 +99,7 @@ const Form = () => {
         </div>
 
         <div className="w-3/4 p-4">
+          {/* Personal Details Section */}
           <div className="bg-white shadow-md rounded p-4 mb-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="flex gap-4 text-[24px] text-[#0A65CC] font-bold">
@@ -114,7 +111,7 @@ const Form = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   if (isPersonalDetailsEditable) {
-                    handleSave("personal");
+                    handleSave("personalDetails");
                   } else {
                     setIsPersonalDetailsEditable(true);
                   }
@@ -135,7 +132,11 @@ const Form = () => {
                   placeholder="First Name"
                   value={formState.personalDetails.firstName}
                   onChange={(e) =>
-                    handleInputChange("personalDetails", "firstName", e.target.value)
+                    handleInputChange(
+                      "personalDetails",
+                      "firstName",
+                      e.target.value
+                    )
                   }
                   disabled={!isPersonalDetailsEditable}
                   error={formState.errors.firstName}
@@ -147,7 +148,11 @@ const Form = () => {
                   placeholder="Last Name"
                   value={formState.personalDetails.lastName}
                   onChange={(e) =>
-                    handleInputChange("personalDetails", "lastName", e.target.value)
+                    handleInputChange(
+                      "personalDetails",
+                      "lastName",
+                      e.target.value
+                    )
                   }
                   disabled={!isPersonalDetailsEditable}
                   error={formState.errors.lastName}
@@ -176,7 +181,11 @@ const Form = () => {
                   placeholder="Gender"
                   value={formState.personalDetails.gender}
                   onChange={(e) =>
-                    handleInputChange("personalDetails", "gender", e.target.value)
+                    handleInputChange(
+                      "personalDetails",
+                      "gender",
+                      e.target.value
+                    )
                   }
                   disabled={!isPersonalDetailsEditable}
                   error={formState.errors.gender}
@@ -189,7 +198,11 @@ const Form = () => {
                   placeholder="Email Address"
                   value={formState.personalDetails.email}
                   onChange={(e) =>
-                    handleInputChange("personalDetails", "email", e.target.value)
+                    handleInputChange(
+                      "personalDetails",
+                      "email",
+                      e.target.value
+                    )
                   }
                   disabled={!isPersonalDetailsEditable}
                   icon={EnvelopeIcon}
@@ -197,25 +210,27 @@ const Form = () => {
                 />
               </Label>
 
-              <Label title="Nationality">
+              <Label title="mobile">
                 <InputField
-                  placeholder="Nationality"
-                  value={formState.personalDetails.nationality}
+                  type="tel"
+                  placeholder="mobile"
+                  value={formState.personalDetails.mobile}
                   onChange={(e) =>
                     handleInputChange(
                       "personalDetails",
-                      "nationality",
+                      "mobile",
                       e.target.value
                     )
                   }
                   disabled={!isPersonalDetailsEditable}
                   icon={IndiaIcon}
-                  error={formState.errors.nationality}
+                  error={formState.errors.mobile}
                 />
               </Label>
             </div>
           </div>
 
+          {/* Institution Details Section */}
           <div className="bg-white shadow-md rounded p-4 mb-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="flex gap-4 text-[24px] text-[#0A65CC] font-bold">
@@ -232,7 +247,7 @@ const Form = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   if (isInstitutionDetailsEditable) {
-                    handleSave("institution");
+                    handleSave("institutionDetails");
                   } else {
                     setIsInstitutionDetailsEditable(true);
                   }
@@ -247,40 +262,110 @@ const Form = () => {
                 />
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-11/12">
-              <Label title="Institution Name">
-                <InputField
-                  placeholder="Institution Name"
-                  value={formState.institutionDetails.name}
+            <div className="w-11/12">
+              <Label title={"About the institution"}>
+                <textarea
+                  placeholder="About the institution"
+                  className="px-[22px] py-[12px] mt-1.5 h-[178px] text-[13px] w-full border border-[#E4E5E8] p-2 rounded-[15px] w-full"
+                  value={formState.institutionDetails.about}
                   onChange={(e) =>
-                    handleInputChange("institutionDetails", "name", e.target.value)
+                    handleInputChange(
+                      "institutionDetails",
+                      "about",
+                      e.target.value
+                    )
                   }
                   disabled={!isInstitutionDetailsEditable}
-                  icon={FileTextIcon}
-                  error={formState.errors.name}
-                />
+                  error={formState.errors.about}
+                ></textarea>
               </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Label title="Institution Name">
+                  <InputField
+                    placeholder="Institution Name"
+                    value={formState.institutionDetails.name}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "institutionDetails",
+                        "name",
+                        e.target.value
+                      )
+                    }
+                    disabled={!isInstitutionDetailsEditable}
+                    error={formState.errors.name}
+                  />
+                </Label>
 
-              <Label title="Website Link">
+                <Label title="institution type">
+                  <InputField
+                    placeholder="Department Name"
+                    value={formState.institutionDetails.type}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "institutionDetails",
+                        "type",
+                        e.target.value
+                      )
+                    }
+                    disabled={!isInstitutionDetailsEditable}
+                    error={formState.errors.type}
+                  />
+                </Label>
+              </div>
+              <Label title={"website"}>
                 <InputField
-                  placeholder="Website Link"
+                  placeholder="website"
                   value={formState.institutionDetails.website}
                   onChange={(e) =>
-                    handleInputChange("institutionDetails", "website", e.target.value)
+                    handleInputChange(
+                      "institutionDetails",
+                      "website",
+                      e.target.value
+                    )
                   }
                   disabled={!isInstitutionDetailsEditable}
                   icon={LinkIcon}
                   error={formState.errors.website}
                 />
               </Label>
-
-              <Label title="State">
-                <div className="relative">
+              <Label title={"Address"}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField
+                    placeholder="address1"
+                    value={formState.institutionDetails.address1}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "institutionDetails",
+                        "address1",
+                        e.target.value
+                      )
+                    }
+                    disabled={!isInstitutionDetailsEditable}
+                    error={formState.errors.address1}
+                  />
+                  <InputField
+                    placeholder="address2"
+                    value={formState.institutionDetails.address2}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "institutionDetails",
+                        "address2",
+                        e.target.value
+                      )
+                    }
+                    disabled={!isInstitutionDetailsEditable}
+                    error={formState.errors.address2}
+                  />
+                </div>
+              </Label>
+              <div className="flex items-center gap-4">
+                <Label title="State">
                   <select
+                    className="block w-full px-[22px] py-[12px] border rounded-[15px]"
                     value={selectedState}
                     onChange={handleStateChange}
                     disabled={!isInstitutionDetailsEditable}
-                    className="capitalize px-[22px] py-[12px] text-[13px] w-full border p-2 rounded-[15px] border-[#0A65CC] appearance-none"
+                    error={formState.errors.state}
                   >
                     <option value="">Select State</option>
                     {Object.keys(stateCityData).map((state) => (
@@ -289,40 +374,40 @@ const Form = () => {
                       </option>
                     ))}
                   </select>
-                  <Image
-                    src={CaretDownIcon}
-                    width={24}
-                    height={24}
-                    className="absolute right-3 top-3 pointer-events-none"
-                    alt="caret down icon"
-                  />
-                </div>
-              </Label>
+                </Label>
 
-              <Label title="City">
-                <div className="relative">
+                <Label title="City">
                   <select
+                    className="block w-full px-[22px] py-[12px] border rounded-[15px]"
                     value={selectedCity}
                     onChange={handleCityChange}
                     disabled={!isInstitutionDetailsEditable}
-                    className="capitalize px-[22px] py-[12px] text-[13px] w-full border p-2 rounded-[15px] border-[#0A65CC] appearance-none"
                   >
                     <option value="">Select City</option>
-                    {stateCityData[selectedState]?.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
+                    {selectedState &&
+                      stateCityData[selectedState].map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
                   </select>
-                  <Image
-                    src={CaretDownIcon}
-                    width={24}
-                    height={24}
-                    className="absolute right-3 top-3 pointer-events-none"
-                    alt="caret down icon"
+                </Label>
+                <Label title="pincode">
+                  <InputField
+                    placeholder="pincode"
+                    value={formState.institutionDetails.pincode}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "institutionDetails",
+                        "pincode",
+                        e.target.value
+                      )
+                    }
+                    disabled={!isInstitutionDetailsEditable}
+                    error={formState.errors.pincode}
                   />
-                </div>
-              </Label>
+                </Label>
+              </div>
             </div>
           </div>
         </div>
