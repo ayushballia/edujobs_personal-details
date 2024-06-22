@@ -37,11 +37,35 @@ const Form = () => {
 
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
-  const [showFileInput, setShowFileInput] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState(BCCLIcon);
+
   const [uploadedImageName, setUploadedImageName] = useState("");
   const [temporaryImage, setTemporaryImage] = useState(null);
   const [croppedImage, setCroppedImage] = useState(null);
+  const [showFileInput, setShowFileInput] = useState(false);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTemporaryImage(reader.result);
+        setUploadedImageName(file.name);
+        setShowFileInput(true); // Show the modal to crop the image after uploading
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditButtonClick = (e) => {
+    e.preventDefault();
+    setShowFileInput(true);
+  };
+
+  const handleCropComplete = (croppedImageUrl) => {
+    setCroppedImage(croppedImageUrl);
+    setTemporaryImage(null); // Clear the temporary image
+    setShowFileInput(false); // Close the modal
+  };
 
   const handleInputChange = (section, field, value) => {
     dispatch(updateField({ section, field, value }));
@@ -97,22 +121,12 @@ const Form = () => {
     setUploadedImageName(file.name);
   };
 
-  const handleCropComplete = (croppedImageUrl) => {
-    setCroppedImage(croppedImageUrl);
-    setUploadedImageName(croppedImageUrl); // Set the cropped image as the new image
-    setTemporaryImage(null); // Clear the temporary image
-    setShowFileInput(false); // Close the modal
-  };
-  const handleEditButtonClick = (e) => {
-    e.preventDefault();
-    setShowFileInput(true);
-  };
   return (
     <form onSubmit={(e) => e.preventDefault()}>
       <div className="flex justify-center gap-6 relative">
         <div className="relative flex items-center justify-center h-max w-1/4">
           <Image
-            src={temporaryImage || BCCLIcon}
+            src={croppedImage || BCCLIcon}
             width={240}
             height={240}
             alt="bccl icon"
@@ -127,13 +141,13 @@ const Form = () => {
         </div>
 
         <Modal
-          show={showFileInput}
-          onClose={() => setShowFileInput(false)}
-          onUpload={handleFileInputChange}
-          imageName={uploadedImageName}
-          temporaryImage={temporaryImage}
-          onCropComplete={handleCropComplete}
-        />
+        show={showFileInput}
+        onClose={() => setShowFileInput(false)}
+        onUpload={handleImageUpload}
+        imageName={uploadedImageName}
+        temporaryImage={temporaryImage}
+        onCropComplete={handleCropComplete}
+      />
 
         <div className="w-3/4 p-4">
           {/* Personal Details Section */}
