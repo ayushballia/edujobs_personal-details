@@ -41,6 +41,7 @@ const Form = () => {
   const [uploadedImage, setUploadedImage] = useState(BCCLIcon);
   const [uploadedImageName, setUploadedImageName] = useState("");
   const [temporaryImage, setTemporaryImage] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
 
   const handleInputChange = (section, field, value) => {
     dispatch(updateField({ section, field, value }));
@@ -89,21 +90,19 @@ const Form = () => {
     handleInputChange("institutionDetails", "city", city);
   };
 
-
-
-  const handleImageUpload = (e) => {
+  const handleFileInputChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTemporaryImage(reader.result);
-        setUploadedImageName(file.name);
-      };
-      reader.readAsDataURL(file);
-    }
-    setShowFileInput(false);
+    const imageUrl = URL.createObjectURL(file);
+    setTemporaryImage(imageUrl);
+    setUploadedImageName(file.name);
   };
 
+  const handleCropComplete = (croppedImageUrl) => {
+    setCroppedImage(croppedImageUrl);
+    setUploadedImageName(croppedImageUrl); // Set the cropped image as the new image
+    setTemporaryImage(null); // Clear the temporary image
+    setShowFileInput(false); // Close the modal
+  };
   const handleEditButtonClick = (e) => {
     e.preventDefault();
     setShowFileInput(true);
@@ -130,9 +129,10 @@ const Form = () => {
         <Modal
           show={showFileInput}
           onClose={() => setShowFileInput(false)}
-          onUpload={handleImageUpload}
+          onUpload={handleFileInputChange}
           imageName={uploadedImageName}
           temporaryImage={temporaryImage}
+          onCropComplete={handleCropComplete}
         />
 
         <div className="w-3/4 p-4">

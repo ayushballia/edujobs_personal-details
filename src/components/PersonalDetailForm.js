@@ -8,6 +8,7 @@ import EditIcon from "@/images/edit.svg";
 const PersonalDetailForm = () => {
   const [uploadedImageName, setUploadedImageName] = useState("");
   const [temporaryImage, setTemporaryImage] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
   const [showFileInput, setShowFileInput] = useState(false);
 
   const handleImageUpload = (e) => {
@@ -17,10 +18,10 @@ const PersonalDetailForm = () => {
       reader.onloadend = () => {
         setTemporaryImage(reader.result);
         setUploadedImageName(file.name);
+        setShowFileInput(true); // Show the modal to crop the image after uploading
       };
       reader.readAsDataURL(file);
     }
-    setShowFileInput(false);
   };
 
   const handleEditButtonClick = (e) => {
@@ -28,14 +29,20 @@ const PersonalDetailForm = () => {
     setShowFileInput(true);
   };
 
+  const handleCropComplete = (croppedImageUrl) => {
+    setCroppedImage(croppedImageUrl);
+    setTemporaryImage(null); // Clear the temporary image
+    setShowFileInput(false); // Close the modal
+  };
+
   return (
-    <form className="relative flex gap-6">
+    <form className="relative flex gap-6" onSubmit={(e) => e.preventDefault()}>
       <div className="w-1/4 relative">
         <Image
-          src={temporaryImage || BCCLIcon}
+          src={croppedImage || BCCLIcon}
           width={240}
           height={240}
-          alt="bccl icon"
+          alt="profile icon"
           className="w-full rounded-full"
         />
         <button
@@ -52,6 +59,7 @@ const PersonalDetailForm = () => {
         onUpload={handleImageUpload}
         imageName={uploadedImageName}
         temporaryImage={temporaryImage}
+        onCropComplete={handleCropComplete}
       />
     </form>
   );

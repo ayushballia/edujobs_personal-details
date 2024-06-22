@@ -1,17 +1,45 @@
 "use client";
 import Image from "next/image";
+import { useState, useCallback } from "react";
 import UploadCloud from "@/images/Upload-cloud.svg";
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '@/utils/cropImage'; // Ensure this path is correct
 
-const Modal = ({ show, onClose, onUpload, imageName, temporaryImage }) => {
+const Modal = ({ show, onClose, onUpload, imageName, temporaryImage, onCropComplete }) => {
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
   const triggerFileInput = () => {
     document.getElementById("fileInput").click();
+  };
+
+  const onCropChange = crop => {
+    setCrop(crop);
+  };
+
+  const onZoomChange = zoom => {
+    setZoom(zoom);
+  };
+
+  const onCropCompleteInternal = useCallback((croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleAddLogoClick = async () => {
+    try {
+      const croppedImage = await getCroppedImg(temporaryImage, croppedAreaPixels);
+      onCropComplete(croppedImage);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
     show && (
       <div className="absolute w-full h-full bg-gray-700 bg-opacity-75 flex z-10 justify-center translate-x-50">
-        <div className="relative bg-white p-4 rounded-[12px] shadow-md w-[536px] h-[316px] m-auto">
-          <label className="block text-[14px] font-normal text-[#18191C]">
+        <div className="relative bg-white p-[32px] rounded-[12px] shadow-md w-[536px] h-[450px] m-auto">
+          <label className="block text-[14px] font-normal text-[#18191C] mb-2">
             Upload Logo
           </label>
           <button
@@ -21,14 +49,19 @@ const Modal = ({ show, onClose, onUpload, imageName, temporaryImage }) => {
             X
           </button>
           <div className="border-2 border-dashed rounded-[12px]" onClick={triggerFileInput}>
-            <div className="flex flex-col items-center justify-center bg-[#F1F2F466] bg-opacity-40">
+            <div className="py-[24px] px-[32px] flex flex-col items-center justify-center bg-[#F1F2F466] bg-opacity-40">
               {temporaryImage ? (
-                <Image
-                  src={temporaryImage}
-                  width={48}
-                  height={48}
-                  alt="uploaded logo preview"
-                />
+                <div className="w-full h-[200px] relative">
+                  <Cropper
+                    image={temporaryImage}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    onCropChange={onCropChange}
+                    onZoomChange={onZoomChange}
+                    onCropComplete={onCropCompleteInternal}
+                  />
+                </div>
               ) : (
                 <Image
                   src={UploadCloud}
@@ -50,7 +83,7 @@ const Modal = ({ show, onClose, onUpload, imageName, temporaryImage }) => {
               />
             </div>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-2">
             <button
               className="text-[16px] font-semibold mt-4 px-[24px] py-[12px] bg-[#E7F0FA] text-[#0A65CC] rounded-[3px]"
               onClick={onClose}
@@ -59,9 +92,7 @@ const Modal = ({ show, onClose, onUpload, imageName, temporaryImage }) => {
             </button>
             <button
               className="text-[16px] font-semibold mt-4 px-[24px] py-[12px] bg-[#0A65CC] text-white rounded-[3px]"
-              onClick={() => {
-                onClose();
-              }}
+              onClick={handleAddLogoClick}
             >
               Add Logo
             </button>
